@@ -9,6 +9,7 @@
 #import "MasterViewController.h"
 #import "DetailViewController.h"
 #import "sharedContactsTableViewController.h"
+#import <ParseFacebookUtils/PFFacebookUtils.h>
 #import "defines.h"
 
 @interface MasterViewController ()
@@ -109,7 +110,7 @@
             UIAlertController *profile = [UIAlertController alertControllerWithTitle:@"Profile" message:nil preferredStyle:UIAlertControllerStyleAlert];
             
             //save changes to profile
-            UIAlertAction *update = [UIAlertAction actionWithTitle:@"Update" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            UIAlertAction *update = [UIAlertAction actionWithTitle:@"Update" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                 int i=0;
                 for (UITextField *tf in profile.textFields) {
                     [PFUser currentUser][profileColumns[i]] = tf.text;
@@ -119,11 +120,20 @@
             }];
             
             UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-            [profile addAction:cancel];
-            [profile addAction:update];
+            
+            //logout of app and facebook
+            UIAlertAction *logOut = [UIAlertAction actionWithTitle:@"Logout" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+                [[PFFacebookUtils session] closeAndClearTokenInformation];
+                [[PFFacebookUtils session] close];
+                [[FBSession activeSession] closeAndClearTokenInformation];
+                [[FBSession activeSession] close];
+                [FBSession setActiveSession:nil];
+                [PFUser logOut];
+                
+                [self.navigationController popToRootViewControllerAnimated:YES];
+            }];
             
             //if there are shared contacts, display the button and display a message.
-            
             if (number) {
                 UIAlertAction *addContacts = [UIAlertAction actionWithTitle:@"Check Shared Contacts" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                     NSLog(@"Check Shared Contacts clicked.");
@@ -133,6 +143,9 @@
                 [profile addAction:addContacts];
             }
             
+            [profile addAction:cancel];
+            [profile addAction:update];
+
             for (NSString *column in profileColumns) {
                 [profile addTextFieldWithConfigurationHandler:^(UITextField *textField) {
                     textField.text = [PFUser currentUser][column];
@@ -142,6 +155,8 @@
                     }
                 }];
             }
+            [profile addAction:logOut];
+
             [self presentViewController:profile animated:YES completion:nil];
         }];
     }];
