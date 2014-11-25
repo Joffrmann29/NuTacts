@@ -195,9 +195,6 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSArray *contacts = _Alphabet[alphabetArray[section]];
-    if (section == 6) {
-        NSLog(@"section count %@ %d", contacts, contacts.count);
-    }
     return contacts.count;
 }
 
