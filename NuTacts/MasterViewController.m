@@ -99,7 +99,21 @@
             
             //save changes to profile
             UIAlertAction *changePassword = [UIAlertAction actionWithTitle:@"Change Password" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                
+                UIAlertController *newPassword = [UIAlertController alertControllerWithTitle:@"Change Password" message:@"Enter New Password" preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+                UIAlertAction *accept = [UIAlertAction actionWithTitle:@"Accept" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+                    UITextField *textfield= newPassword.textFields[0];
+                    [PFUser currentUser].password = textfield.text;
+                    [[PFUser currentUser] saveInBackground];
+                }];
+                [newPassword addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+                    textField.placeholder = @"Password";
+                    [textField setSecureTextEntry:YES];
+                }];
+                [newPassword addAction:cancel];
+                [newPassword addAction:accept];
+                [self presentViewController:newPassword animated:YES completion:nil];
+
             }];
             
             UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
