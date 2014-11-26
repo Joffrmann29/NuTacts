@@ -49,16 +49,6 @@
     self.refreshControl = refreshControl;
     self.tableView.backgroundView.layer.zPosition -= 1;
     
-    //NavigationBar alterations
-    [self.navigationController.navigationBar setTintColor:[UIColor lightTextColor]];
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"gradient.png" ] forBarMetrics:UIBarMetricsDefault];
-    NSShadow *shadow = [NSShadow new];
-    [shadow setShadowColor: [UIColor blackColor]];
-    [shadow setShadowOffset: CGSizeMake(2.0f, 2.0f)];
-    NSDictionary *navbarTitleTextAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-                                               [UIColor lightTextColor],NSForegroundColorAttributeName,
-                                               shadow, NSShadowAttributeName, nil];
-    self.navigationController.navigationBar.TitleTextAttributes = navbarTitleTextAttributes;
     //NavigationBar Button:
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     
@@ -103,33 +93,20 @@
         NSString *email = [[PFUser currentUser].email uppercaseString];
         [query whereKey:@"emailRecipient" equalTo:email];
         [query countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
-//            NSString *message = nil;
-            
-
+            NSString *message = [NSString stringWithFormat:@"Username: %@\nE-Mail: %@", [PFUser currentUser].username, [PFUser currentUser].email];
             //display profile AlertController
-            UIAlertController *profile = [UIAlertController alertControllerWithTitle:@"Profile" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertController *profile = [UIAlertController alertControllerWithTitle:@"Profile" message:message preferredStyle:UIAlertControllerStyleAlert];
             
             //save changes to profile
-            UIAlertAction *update = [UIAlertAction actionWithTitle:@"Update" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                int i=0;
-                for (UITextField *tf in profile.textFields) {
-                    [PFUser currentUser][profileColumns[i]] = tf.text;
-                    i++;
-                }
-                [[PFUser currentUser] saveInBackground];
+            UIAlertAction *changePassword = [UIAlertAction actionWithTitle:@"Change Password" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                
             }];
             
             UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
             
             //logout of app and facebook
             UIAlertAction *logOut = [UIAlertAction actionWithTitle:@"Logout" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-                [[PFFacebookUtils session] closeAndClearTokenInformation];
-                [[PFFacebookUtils session] close];
-                [[FBSession activeSession] closeAndClearTokenInformation];
-                [[FBSession activeSession] close];
-                [FBSession setActiveSession:nil];
                 [PFUser logOut];
-                
                 [self.navigationController popToRootViewControllerAnimated:YES];
             }];
             
@@ -139,22 +116,12 @@
                     NSLog(@"Check Shared Contacts clicked.");
                     [self performSegueWithIdentifier:@"displaySharedContacts" sender:nil];
                 }];
-                profile.message = @"You have contacts awaiting approval.";
+                profile.message = [profile.message stringByAppendingString:@"\nYou have contacts awaiting approval."];
                 [profile addAction:addContacts];
             }
             
             [profile addAction:cancel];
-            [profile addAction:update];
-
-            for (NSString *column in profileColumns) {
-                [profile addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-                    textField.text = [PFUser currentUser][column];
-                    textField.placeholder = column;
-                    if([column isEqualToString:@"email"]){
-                        textField.keyboardType = UIKeyboardTypeEmailAddress;
-                    }
-                }];
-            }
+            [profile addAction:changePassword];
             [profile addAction:logOut];
 
             [self presentViewController:profile animated:YES completion:nil];
